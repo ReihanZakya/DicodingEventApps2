@@ -4,6 +4,8 @@
     <string name="title_home">Home</string>
     <string name="title_upcoming">Upcoming</string>
     <string name="title_finished">Finished</string>
+    <string name="title_favorite">Favorite</string>
+    <string name="title_setting">Setting</string>
     <string name="title_activity_home">Home Activity</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="btn_register">Register</string>
@@ -25,4 +27,6 @@
     <string name="title_finished_event">Finished Event</string>
     <string name="searchbar_hint">Masukkan kata</string>
     <string name="image">Image</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

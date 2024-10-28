@@ -1,60 +1,73 @@
 package com.example.dicodingeventapp.ui.favorite
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.dicodingeventapp.R
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.dicoding.applicationdicodingevent.data.response.ListEventsItem
+import com.example.dicodingeventapp.data.FavoriteEventRepository
+import com.example.dicodingeventapp.data.local.room.AppDatabase
+import com.example.dicodingeventapp.databinding.FragmentFavoriteBinding
+import com.example.dicodingeventapp.ui.Adapter
+import com.example.dicodingeventapp.ui.DetailActivity
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [FavoriteFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class FavoriteFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+class FavoriteFragment : Fragment() {
+    private lateinit var binding: FragmentFavoriteBinding
+    private lateinit var viewModel: FavoriteViewModel
+    private lateinit var adapter: Adapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_favorite, container, false)
+    ): View {
+        binding = FragmentFavoriteBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment FavoriteFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            FavoriteFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Inisialisasi adapter
+        adapter = Adapter { event ->
+            // Aksi ketika item diklik, misalnya pindah ke detail activity
+            val intent = Intent(requireContext(), DetailActivity::class.java)
+            intent.putExtra("EVENT_ID", event.id)
+            startActivity(intent)
+        }
+        binding.rvFavoriteEvent.adapter = adapter
+        binding.rvFavoriteEvent.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+
+        // Inisialisasi ViewModel
+        val repository = FavoriteEventRepository(AppDatabase.getDatabase(requireContext()).favoriteEventDao())
+        val factory = ViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory).get(FavoriteViewModel::class.java)
+
+        // Observasi loading state untuk progress bar
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        // Observasi data favorite dari ViewModel
+        viewModel.getFavoriteEvents().observe(viewLifecycleOwner) { favoriteEvents ->
+            // Mengupdate adapter dengan daftar event favorite
+            adapter.submitList(favoriteEvents.map { event ->
+                ListEventsItem(
+                    id = event.id,
+                    name = event.name,
+                    mediaCover = event.mediaCover
+                )
+            })
+        }
     }
 }

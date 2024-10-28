@@ -18,7 +18,7 @@
 
     <item
         android:id="@+id/navigation_favorite"
-        android:icon="@drawable/baseline_bookmarks_24"
+        android:icon="@drawable/ic_favorite_24"
         android:title="@string/title_favorite" />
 
     <item

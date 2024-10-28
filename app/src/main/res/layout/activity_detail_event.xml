@@ -10,6 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+
+
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyle"
@@ -27,7 +29,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
             android:text="@string/detail_name"
             android:textSize="18sp"
@@ -168,6 +170,19 @@
             android:text="@string/title_tanggal_acara"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvRemainingQuota" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            app:fabSize="normal"
+            app:layout_constraintBottom_toBottomOf="@+id/imgDetail"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imgDetail"
+            app:srcCompat="@drawable/ic_favorite_border_24" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

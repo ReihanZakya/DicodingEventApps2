@@ -7,17 +7,25 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.dicoding.applicationdicodingevent.data.response.DetailEventResponse
 import com.dicoding.applicationdicodingevent.data.response.Event
 import com.dicoding.applicationdicodingevent.data.retrofit.ApiConfig
+import com.example.dicodingeventapp.R
+import com.example.dicodingeventapp.data.local.entity.FavoriteEvent
+import com.example.dicodingeventapp.data.local.room.AppDatabase
 import com.example.dicodingeventapp.databinding.ActivityDetailEventBinding
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailEventBinding
+    private lateinit var database: AppDatabase
+    private var mediaCover: String? = null
+    private var isFavorite = false
 
     companion object {
         private const val TAG = "DetailEventActivity"
@@ -31,7 +39,42 @@ class DetailActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         findEventDetail()
+
+        // Inisialisasi database
+        database = AppDatabase.getDatabase(this)
+
+
+        // Dapatkan event ID dan mulai observasi status favorite
+        val eventId = intent.getStringExtra("EVENT_ID")
+        observeFavoriteStatus(eventId)
+
+        // Set aksi pada tombol favorite
+        binding.btnFavorite.setOnClickListener {
+            if (isFavorite) {
+                removeFavorite(eventId)
+            } else {
+                insertFavorite()
+            }
+        }
     }
+
+    private fun observeFavoriteStatus(eventId: String?) {
+        if (eventId != null) {
+            database.favoriteEventDao().getFavoriteEventById(eventId).observe(this) { favoriteEvent ->
+                if (favoriteEvent != null) {
+                    // Jika event sudah ditambahkan ke favorites
+                    binding.btnFavorite.setImageResource(R.drawable.ic_favorite_24)
+                    isFavorite = true
+                } else {
+                    // Jika event belum ada di favorites
+                    binding.btnFavorite.setImageResource(R.drawable.ic_favorite_border_24)
+                    isFavorite = false
+                }
+            }
+        }
+    }
+
+
 
     private fun findEventDetail() {
         val eventId = intent.getStringExtra("EVENT_ID")
@@ -67,6 +110,7 @@ class DetailActivity : AppCompatActivity() {
 
     private fun setEventData(event: Event?) {
         if (event != null) {
+            mediaCover = event.mediaCover
             Glide.with(binding.imgDetail.context)
                 .load(event.mediaCover)
                 .into(binding.imgDetail)
@@ -97,5 +141,35 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
+    // Fungsi untuk menambahkan event ke database
+    private fun insertFavorite() {
+        val eventId = intent.getStringExtra("EVENT_ID") ?: return
+        val eventName = binding.tvDetailName.text.toString()
+
+        val favoriteEvent = FavoriteEvent(id = eventId, name = eventName, mediaCover = mediaCover)
+
+        // Menjalankan proses insert di dalam coroutine
+        lifecycleScope.launch {
+            try {
+                database.favoriteEventDao().insertFavorite(favoriteEvent)
+                Log.d(TAG, "Event added to favorites: $eventName")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to add favorite: ${e.message}")
+            }
+        }
+    }
+
+    private fun removeFavorite(eventId: String?) {
+        if (eventId != null) {
+            lifecycleScope.launch {
+                try {
+                    database.favoriteEventDao().deleteFavoriteById(eventId)
+                    Log.d(TAG, "Event removed from favorites")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to remove favorite: ${e.message}")
+                }
+            }
+        }
+    }
 
 }

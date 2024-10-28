@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +14,10 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.dicodingeventapp.databinding.FragmentHomeBinding
 import com.example.dicodingeventapp.ui.Adapter
 import com.example.dicodingeventapp.ui.DetailActivity
+import com.example.dicodingeventapp.ui.setting.SettingPreferences
+import com.example.dicodingeventapp.ui.setting.SettingViewModel
+import com.example.dicodingeventapp.ui.setting.SettingViewModelFactory
+import com.example.dicodingeventapp.ui.setting.dataStore
 
 class HomeFragment : Fragment() {
 
@@ -20,6 +25,7 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var settingViewModel: SettingViewModel
     private lateinit var upcomingAdapter: Adapter
     private lateinit var finishedAdapter: Adapter
 
@@ -33,6 +39,21 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Inisialisasi SettingViewModel untuk memantau tema
+        val pref = SettingPreferences.getInstance(requireContext().dataStore)
+        settingViewModel = ViewModelProvider(this, SettingViewModelFactory(pref)).get(
+            SettingViewModel::class.java
+        )
+
+        // Observe perubahan tema dan terapkan tema sesuai data
+        settingViewModel.getThemeSettings().observe(viewLifecycleOwner) { isDarkModeActive ->
+            if (isDarkModeActive) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+        }
 
         homeViewModel = ViewModelProvider(requireActivity(), ViewModelProvider.NewInstanceFactory())[HomeViewModel::class.java]
 

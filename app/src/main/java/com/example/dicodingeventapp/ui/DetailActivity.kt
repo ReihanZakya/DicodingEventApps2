@@ -40,15 +40,12 @@ class DetailActivity : AppCompatActivity() {
 
         findEventDetail()
 
-        // Inisialisasi database
         database = AppDatabase.getDatabase(this)
 
 
-        // Dapatkan event ID dan mulai observasi status favorite
         val eventId = intent.getStringExtra("EVENT_ID")
         observeFavoriteStatus(eventId)
 
-        // Set aksi pada tombol favorite
         binding.btnFavorite.setOnClickListener {
             if (isFavorite) {
                 removeFavorite(eventId)
@@ -62,11 +59,9 @@ class DetailActivity : AppCompatActivity() {
         if (eventId != null) {
             database.favoriteEventDao().getFavoriteEventById(eventId).observe(this) { favoriteEvent ->
                 if (favoriteEvent != null) {
-                    // Jika event sudah ditambahkan ke favorites
                     binding.btnFavorite.setImageResource(R.drawable.ic_favorite_24)
                     isFavorite = true
                 } else {
-                    // Jika event belum ada di favorites
                     binding.btnFavorite.setImageResource(R.drawable.ic_favorite_border_24)
                     isFavorite = false
                 }
@@ -141,14 +136,12 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
-    // Fungsi untuk menambahkan event ke database
     private fun insertFavorite() {
         val eventId = intent.getStringExtra("EVENT_ID") ?: return
         val eventName = binding.tvDetailName.text.toString()
 
         val favoriteEvent = FavoriteEvent(id = eventId, name = eventName, mediaCover = mediaCover)
 
-        // Menjalankan proses insert di dalam coroutine
         lifecycleScope.launch {
             try {
                 database.favoriteEventDao().insertFavorite(favoriteEvent)

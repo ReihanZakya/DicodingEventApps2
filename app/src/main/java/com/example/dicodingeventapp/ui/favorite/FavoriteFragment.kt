@@ -16,11 +16,6 @@ import com.example.dicodingeventapp.databinding.FragmentFavoriteBinding
 import com.example.dicodingeventapp.ui.Adapter
 import com.example.dicodingeventapp.ui.DetailActivity
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
 
 class FavoriteFragment : Fragment() {
     private lateinit var binding: FragmentFavoriteBinding
@@ -38,9 +33,7 @@ class FavoriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inisialisasi adapter
         adapter = Adapter { event ->
-            // Aksi ketika item diklik, misalnya pindah ke detail activity
             val intent = Intent(requireContext(), DetailActivity::class.java)
             intent.putExtra("EVENT_ID", event.id)
             startActivity(intent)
@@ -48,19 +41,15 @@ class FavoriteFragment : Fragment() {
         binding.rvFavoriteEvent.adapter = adapter
         binding.rvFavoriteEvent.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
 
-        // Inisialisasi ViewModel
         val repository = FavoriteEventRepository(AppDatabase.getDatabase(requireContext()).favoriteEventDao())
         val factory = ViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory).get(FavoriteViewModel::class.java)
 
-        // Observasi loading state untuk progress bar
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
-        // Observasi data favorite dari ViewModel
         viewModel.getFavoriteEvents().observe(viewLifecycleOwner) { favoriteEvents ->
-            // Mengupdate adapter dengan daftar event favorite
             adapter.submitList(favoriteEvents.map { event ->
                 ListEventsItem(
                     id = event.id,
